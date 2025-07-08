@@ -1,4 +1,4 @@
-module n1h41/zolaris-backend-app
+module github.com/afreedicp/zolaris-backend-app
 
 go 1.24.0
 

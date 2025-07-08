@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"n1h41/zolaris-backend-app/internal/domain"
+	"github.com/afreedicp/zolaris-backend-app/internal/domain"
 )
 
 // SensorDataDBModel represents how sensor readings are stored in the database

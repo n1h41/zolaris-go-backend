@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"n1h41/zolaris-backend-app/internal/transport/dto"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
 )
 
 // Success sends a successful response

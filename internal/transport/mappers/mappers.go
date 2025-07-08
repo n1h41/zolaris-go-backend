@@ -3,9 +3,9 @@ package mappers
 import (
 	"encoding/json"
 	"time"
-
-	"n1h41/zolaris-backend-app/internal/domain"
-	"n1h41/zolaris-backend-app/internal/transport/dto"
+"log"
+	"github.com/afreedicp/zolaris-backend-app/internal/domain"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
 )
 
 // UserToResponse converts a domain User to a UserResponse DTO
@@ -58,9 +58,27 @@ func UserRequestToEntity(req *dto.UserDetailsRequest, existingUser *domain.User)
 	if existingUser != nil {
 		user = existingUser
 		user.UpdatedAt = time.Now()
-	} else {
-		user = domain.NewUser(req.Email, req.FirstName, req.LastName, req.Phone)
-	}
+	}else {
+        // Option A: Update NewUser to take more parameters
+        // This is generally cleaner if NewUser is meant to fully construct a user.
+        // You'd need to modify domain.NewUser to accept cognitoID, referralMail, role.
+        // Example: user = domain.NewUser(req.Email, req.FirstName, req.LastName, req.Phone, req.CognitoID, req.ReferralMail, req.Role)
+        // And then in domain.NewUser:
+        // func NewUser(email string, fn, ln, ph, cID, rm, r string) *User { ... return &User{..., CognitoID: &cID, Role: &r, ...} }
+
+        // Option B: Create a new domain.User struct and populate fields here (more flexible for partial updates)
+        // This is what I'll assume for now, as it's easier to integrate incrementally.
+        // If domain.NewUser still creates the base user, assign the rest here.
+        user = domain.NewUser(req.Email, req.FirstName, req.LastName, req.Phone) // Keep this call if it generates ID/timestamps
+
+        // Set mandatory fields from DTO that NewUser might not handle
+        if req.CognitoID != "" { // Assuming CognitoID is now in dto.UserDetailsRequest and validate:"required"
+            user.CognitoID = &req.CognitoID
+        } else {
+            // This should ideally not happen if validate:"required" works correctly on CognitoID in the DTO
+            log.Printf("Warning: CognitoID was empty in request DTO, but is required for user creation. This might lead to DB error if not handled upstream.")
+        }
+    }
 
 	user.Email = req.Email
 	user.FirstName = &req.FirstName
@@ -78,6 +96,20 @@ func UserRequestToEntity(req *dto.UserDetailsRequest, existingUser *domain.User)
 	if req.ParentID != "" {
 		user.ParentID = &req.ParentID
 	}
+
+	  // Map Role (assuming it's now in dto.UserDetailsRequest and not required, so has a default logic)
+    if req.Role != "" {
+        user.Role = &req.Role
+    } else {
+        defaultRole := "user" // Default role if not provided in DTO
+        user.Role = &defaultRole
+    }
+
+    // Map ReferralMail (assuming it's now in dto.UserDetailsRequest and optional)
+    if req.ReferralMail != "" {
+        user.ReferralMail = &req.ReferralMail
+    }
+    // No else needed for ReferralMail if it's genuinely optional and can be nil in DB
 
 	return user
 }

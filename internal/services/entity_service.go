@@ -3,20 +3,21 @@ package services
 import (
 	"context"
 	"fmt"
-
-	"n1h41/zolaris-backend-app/internal/domain"
-	"n1h41/zolaris-backend-app/internal/repositories"
+	"github.com/afreedicp/zolaris-backend-app/internal/domain"
+	"github.com/afreedicp/zolaris-backend-app/internal/repositories"
 )
 
 // EntityService provides entity-related business operations
 type EntityService struct {
 	repo repositories.EntityRepository
+	userRepo  repositories.UserRepositoryInterface 
 }
 
 // NewEntityService creates a new entity service with the provided repository
-func NewEntityService(repo repositories.EntityRepository) *EntityService {
+func NewEntityService(repo repositories.EntityRepository, userRepo repositories.UserRepositoryInterface)*EntityService {
 	return &EntityService{
 		repo: repo,
+		userRepo: userRepo,
 	}
 }
 
@@ -56,13 +57,45 @@ func (s *EntityService) CreateSubEntity(ctx context.Context, categoryId string, 
 	if entityName == "" {
 		return "", fmt.Errorf("entity name cannot be empty")
 	}
-
-	// If details is nil, initialize it as an empty map
 	if details == nil {
 		details = make(map[string]any)
 	}
 
-	return s.repo.CreateSubEntity(ctx, categoryId, entityName, userId, details, parentEntityID)
+	parentCategoryID, err := s.repo.GetCategoryIDByEntityID(ctx, parentEntityID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get parent's category ID: %w", err)
+	}
+
+	parentCategoryType, err := s.repo.GetCategoryType(ctx, parentCategoryID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get parent's category type: %w", err)
+	}
+
+	currentCategoryType, err := s.repo.GetCategoryType(ctx, categoryId)
+	if err != nil {
+		return "", fmt.Errorf("failed to get parent's category type: %w", err)
+	}
+
+	subentityID, err := s.repo.CreateSubEntity(ctx, categoryId, entityName, userId, details, parentEntityID)
+	if err != nil {
+		return "", fmt.Errorf("failed to create sub-entity: %w", err)
+	}
+	if parentCategoryType == "user" &&  currentCategoryType == "user" {
+		subuserRaw, ok := details["subuser_id"]
+		if !ok {
+			return "", fmt.Errorf("subuser_id not found in details : %w", parentCategoryType)
+		}
+		subuserID, ok := subuserRaw.(string)
+		if !ok {
+			return "", fmt.Errorf("subuser_id must be a string")
+		}
+
+
+		if err := s.userRepo.UpdateUserParentID(ctx, subuserID, &parentEntityID); err != nil {
+			return "", fmt.Errorf("failed to update user parent ID: %w", err)
+		}
+	}
+	return subentityID, nil
 }
 
 // GetChildEntities retrieves all direct child entities of a given entity
@@ -100,11 +133,13 @@ func (s *EntityService) ListEntityChildren(ctx context.Context, entityId string,
 	return s.repo.ListEntityChildren(ctx, entityId, level, categoryType)
 }
 
-// GetCategoryType retrieves the type of a category by its ID
-func (s *EntityService) GetCategoryType(ctx context.Context, categoryId string) (repositories.CategoryType, error) {
-	if categoryId == "" {
-		return "", fmt.Errorf("category ID cannot be empty")
+
+
+
+func (s *EntityService) GetEntityID(ctx context.Context, userId string) (string, error) {
+	if userId == "" {
+		return "", fmt.Errorf("user ID is empty")
 	}
 
-	return s.repo.GetCategoryType(ctx, categoryId)
+	return s.repo.GetEntityID(ctx, userId) // You must have this repo method implemented
 }

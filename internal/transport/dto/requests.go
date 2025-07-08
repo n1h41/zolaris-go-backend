@@ -15,7 +15,10 @@ type UserDetailsRequest struct {
 	Country      string `json:"country" validate:"required"`
 	Zip          string `json:"zip" validate:"required"`
 	ParentID     string `json:"parentId,omitempty"`
+	Role         string  `json:"role"`
 	ReferralMail string `json:"referralMail,omitempty"`
+	ID string `json:"-"`
+	 CognitoID    string `json:"cognitoId" validate:"required"`
 }
 
 // DeviceRequest represents a request to add a new device

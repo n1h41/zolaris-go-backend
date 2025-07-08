@@ -1,6 +1,6 @@
 FROM golang:1.24-alpine
 
-WORKDIR /home/n1h41/dev/go/works/zolaris-backend
+WORKDIR /app
 
 RUN apk add build-base gcc-go musl-dev
 RUN go install github.com/air-verse/air@latest

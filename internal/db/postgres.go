@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"n1h41/zolaris-backend-app/internal/config"
+	"github.com/afreedicp/zolaris-backend-app/internal/config"
 )
 
 // PostgresDB represents a PostgreSQL database connection

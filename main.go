@@ -15,14 +15,14 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"n1h41/zolaris-backend-app/api/handlers"
-	"n1h41/zolaris-backend-app/docs"
-	"n1h41/zolaris-backend-app/internal/aws"
-	"n1h41/zolaris-backend-app/internal/config"
-	"n1h41/zolaris-backend-app/internal/db"
-	"n1h41/zolaris-backend-app/internal/middleware"
-	"n1h41/zolaris-backend-app/internal/repositories"
-	"n1h41/zolaris-backend-app/internal/services"
+	"github.com/afreedicp/zolaris-backend-app/api/handlers"
+	"github.com/afreedicp/zolaris-backend-app/docs"
+	"github.com/afreedicp/zolaris-backend-app/internal/aws"
+	"github.com/afreedicp/zolaris-backend-app/internal/config"
+	"github.com/afreedicp/zolaris-backend-app/internal/db"
+	"github.com/afreedicp/zolaris-backend-app/internal/middleware"
+	"github.com/afreedicp/zolaris-backend-app/internal/repositories"
+	"github.com/afreedicp/zolaris-backend-app/internal/services"
 )
 
 func main() {
@@ -73,7 +73,7 @@ func main() {
 	policyService := services.NewPolicyService(policyRepo, cfg.AWS.IoTPolicy)
 	categoryService := services.NewCategoryService(categoryRepo)
 	userService := services.NewUserService(userRepo)
-	entityService := services.NewEntityService(entityRepo)
+	entityService := services.NewEntityService(entityRepo, userRepo)
 
 	// Initialize handlers
 	entityHandler := handlers.NewEntityHandler(entityService)
@@ -142,6 +142,7 @@ func main() {
 	private := r.Group("/")
 	private.Use(middleware.GinAuthMiddleware(userService))
 	{
+		
 		// Device endpoints
 		private.POST("/device/add", addDeviceHandler.HandleGin)
 		private.GET("/user/devices", listUserDevicesHandler.HandleGin)
@@ -151,7 +152,8 @@ func main() {
 		private.POST("/user/details", userHandler.HandleUpdateUserDetails)
 		private.GET("/user/details", userHandler.HandleGetUserDetails)
 		private.GET("/user/has-entity", entityHandler.HandleCheckEntityPresence)
-		private.GET("/users/referrals", userHandler.HandleListReferredUsers)
+		private.GET("/user/referrals", userHandler.HandleListReferredUsers)
+		
 
 		// Entity endpoints (authenticated)
 		private.POST("/entity/root", entityHandler.HandleCreateRootEntity)
@@ -159,6 +161,7 @@ func main() {
 	}
 
 	// Public routes (no authentication required)
+	r.POST("/user/createUser",userHandler.CreateUserDetails)
 	r.POST("/device/attach-policy", attachIotPolicyHandler.HandleGin)
 	r.POST("/device/sensor-data", getDeviceSensorDataHandler.HandleGin)
 	r.POST("/category/add", addCategoryHandler.HandleGin)

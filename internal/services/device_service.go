@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"n1h41/zolaris-backend-app/internal/repositories"
-	"n1h41/zolaris-backend-app/internal/transport/dto"
-	"n1h41/zolaris-backend-app/internal/transport/mappers"
+	"github.com/afreedicp/zolaris-backend-app/internal/repositories"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/mappers"
 )
 
 // DeviceService handles business logic for device operations

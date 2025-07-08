@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"n1h41/zolaris-backend-app/internal/transport/dto"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
 )
 
 // UserIDKey is the context key for storing the user ID

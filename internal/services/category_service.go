@@ -5,9 +5,9 @@ import (
 	"errors"
 	"log"
 
-	"n1h41/zolaris-backend-app/internal/repositories"
-	"n1h41/zolaris-backend-app/internal/transport/dto"
-	"n1h41/zolaris-backend-app/internal/transport/mappers"
+	"github.com/afreedicp/zolaris-backend-app/internal/repositories"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/mappers"
 )
 
 // CategoryService handles business logic for category operations

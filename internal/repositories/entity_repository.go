@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"n1h41/zolaris-backend-app/internal/domain"
+	"github.com/afreedicp/zolaris-backend-app/internal/domain"
 )
 
 type CategoryType string
@@ -51,8 +50,20 @@ func (r *EntityRepository) GetCategoryType(ctx context.Context, categoryId strin
 		}
 		return "", fmt.Errorf("failed to get category type: %w", err)
 	}
-
 	return CategoryType(categoryType), nil
+}
+
+func (r *EntityRepository) GetCategoryIDByEntityID(ctx context.Context, entityID string) (string, error) {
+	var categoryID string
+	query := `SELECT category_id FROM z_entity WHERE entity_id = $1`
+	err := r.db.QueryRow(ctx, query, entityID).Scan(&categoryID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return "", fmt.Errorf("entity with ID %s not found", entityID)
+		}
+		return "", fmt.Errorf("failed to get category ID: %w", err)
+	}
+	return categoryID, nil
 }
 
 func (r *EntityRepository) CreateRootEntity(ctx context.Context, categoryId string, entityName string, userId string, details map[string]any) (string, error) {
@@ -563,3 +574,19 @@ func (r *EntityRepository) ListEntityChildren(ctx context.Context, entityId stri
 
 	return entities, nil
 }
+
+func (r *EntityRepository) GetEntityID(ctx context.Context, userId string) (string, error) {
+    var entityID string
+    query := `SELECT entity_id FROM z_entity WHERE user_id = $1 LIMIT 1`
+    err := r.db.QueryRow(ctx, query, userId).Scan(&entityID)
+    if err != nil {
+        if err == pgx.ErrNoRows {
+            return "", fmt.Errorf("no entity found for user ID %s", userId)
+        }
+        return "", fmt.Errorf("failed to get entity ID: %w", err)
+    }
+    return entityID, nil
+}
+
+
+

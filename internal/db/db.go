@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"n1h41/zolaris-backend-app/internal/config"
+	"github.com/afreedicp/zolaris-backend-app/internal/config"
 )
 
 // Database holds the database clients and configuration

@@ -5,12 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"n1h41/zolaris-backend-app/internal/middleware"
-	"n1h41/zolaris-backend-app/internal/services"
-	"n1h41/zolaris-backend-app/internal/transport/dto"
-	"n1h41/zolaris-backend-app/internal/transport/mappers"
-	"n1h41/zolaris-backend-app/internal/transport/response"
-	"n1h41/zolaris-backend-app/internal/utils"
+	"github.com/afreedicp/zolaris-backend-app/internal/middleware"
+	"github.com/afreedicp/zolaris-backend-app/internal/services"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/mappers"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/response"
+	"github.com/afreedicp/zolaris-backend-app/internal/utils"
 )
 
 type UserHandler struct {
@@ -150,7 +150,7 @@ func (h *UserHandler) HandleCheckHasParentID(c *gin.Context) {
 	response.OK(c, gin.H{"has_parent_id": hasParentID}, "Success")
 }
 
-// HandleListReferredUsers handles GET /user/referred-users requests
+// HandleListReferredUsers handles GET /user/referrals requests
 // @Summary List referred users
 // @Description Retrieve a list of users referred by the authenticated user
 // @Tags User Management
@@ -160,8 +160,9 @@ func (h *UserHandler) HandleCheckHasParentID(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "User ID not found in context"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
 // @Security ApiKeyAuth
-// @Router /user/referred-users [get]
+// @Router /user/referrals [get]
 func (h *UserHandler) HandleListReferredUsers(c *gin.Context) {
+	log.Printf("Error listing referred usersasd:")
 	userID, exists := c.Get("userID")
 	if !exists {
 		response.BadRequest(c, "User ID not found in context")
@@ -177,3 +178,55 @@ func (h *UserHandler) HandleListReferredUsers(c *gin.Context) {
 
 	response.OK(c, mappers.UsersToResponses(referredUsers), "Referred users retrieved successfully")
 }
+
+
+
+
+// CreateUserDetails handles POST /user/createUser requests
+// @Summary Create user details
+// @Description Create a new user record in the system based on Cognito ID and request data
+// @Tags User Management
+// @Accept json
+// @Produce json
+// @Param X-User-ID header string true "User ID"
+// @Param user body dto.UserDetailsRequest true "User details"
+// @Success 201 {object} dto.Response{data=dto.UserResponse} "User details created successfully"
+// @Failure 400 {object} dto.ErrorResponse "Validation error"
+// @Failure 401 {object} dto.ErrorResponse "User not authenticated"
+// @Failure 500 {object} dto.ErrorResponse "Internal server error"
+// @Security ApiKeyAuth
+// @Router /user/createUser [post]
+func (h *UserHandler) CreateUserDetails(c *gin.Context) {
+
+	var request dto.UserDetailsRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Printf("Invalid request format: %v", err)
+		response.BadRequest(c, "Invalid request format")
+		return
+	}
+	// Validate input
+	if validationErrs := utils.Validate(request); validationErrs != nil {
+		log.Printf("Validation errors: %s", utils.ValidationErrorsToString(validationErrs))
+		var validationErrDTOs []dto.ValidationError
+		for _, ve := range validationErrs {
+			validationErrDTOs = append(validationErrDTOs, dto.ValidationError{
+				Field:   ve.Field,
+				Message: ve.Error,
+			})
+		}
+		response.ValidationErrors(c, validationErrDTOs)
+		return
+	}
+	// Call service to create user
+	createdUser, err := h.userService.CreateUser(c.Request.Context(), &request)
+	if err != nil {
+		log.Printf("Failed to create user: %v", err)
+		response.InternalError(c, "Failed to create user")
+		return
+	}
+
+	// Map domain model to response DTO
+	userResp := mappers.UserToResponse(createdUser)
+	response.Created(c, userResp, "User created successfully")
+}
+

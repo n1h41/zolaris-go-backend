@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	"n1h41/zolaris-backend-app/internal/transport/dto"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
 )
 
 // ValidationErrorItem represents a validation error for a specific field

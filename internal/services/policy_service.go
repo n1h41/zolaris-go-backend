@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"log"
-	"n1h41/zolaris-backend-app/internal/repositories"
+	"github.com/afreedicp/zolaris-backend-app/internal/repositories"
 )
 
 // PolicyService handles business logic for IoT policy operations

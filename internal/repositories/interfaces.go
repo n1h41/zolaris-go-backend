@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	"n1h41/zolaris-backend-app/internal/domain"
+	"github.com/afreedicp/zolaris-backend-app/internal/domain"
 )
 
 // UserRepositoryInterface defines the operations for user data
@@ -16,6 +16,7 @@ type UserRepositoryInterface interface {
 	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 	GetChildUsers(ctx context.Context, parentID string) ([]*domain.User, error)
 	ListReferredUsers(ctx context.Context, userID string) ([]*domain.User, error)
+	UpdateUserParentID(ctx context.Context, userID string, parentID *string) error
 }
 
 // DeviceRepositoryInterface defines the operations for device data

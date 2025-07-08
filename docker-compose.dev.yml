@@ -2,11 +2,13 @@ services:
   database:
     image: postgres:17
     container_name: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB_NAME}
-      POSTGRES_HOST_AUTH_METHOD: trust
+    env_file: # <--- Make sure this is present and points to your file
+      - ./.env
+    #environment:
+     # POSTGRES_USER: ${POSTGRES_USER}
+     # POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+     # POSTGRES_DB: ${POSTGRES_DB_NAME}
+     # POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
@@ -42,7 +44,7 @@ services:
         - POSTGRES_DB_NAME=${POSTGRES_DB_NAME}
         - POSTGRES_SSL_MODE=${POSTGRES_SSL_MODE}
     volumes:
-      - ./:/home/n1h41/dev/go/works/zolaris-backend
+        - ./:/app
     restart: unless-stopped
     command: air
     depends_on:

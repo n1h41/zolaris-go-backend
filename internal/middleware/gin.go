@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"n1h41/zolaris-backend-app/internal/services"
+	"github.com/afreedicp/zolaris-backend-app/internal/services"
 )
 
 // GinAuthMiddleware checks for user authentication

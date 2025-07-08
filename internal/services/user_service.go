@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"n1h41/zolaris-backend-app/internal/domain"
-	"n1h41/zolaris-backend-app/internal/repositories"
-	"n1h41/zolaris-backend-app/internal/transport/dto"
-	"n1h41/zolaris-backend-app/internal/transport/mappers"
+	"github.com/afreedicp/zolaris-backend-app/internal/domain"
+	"github.com/afreedicp/zolaris-backend-app/internal/repositories"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/dto"
+	"github.com/afreedicp/zolaris-backend-app/internal/transport/mappers"
 )
 
 // UserService handles business logic for user operations
@@ -22,8 +22,23 @@ func NewUserService(userRepo repositories.UserRepositoryInterface) *UserService 
 }
 
 func (s *UserService) GetUserIdByCognitoId(ctx context.Context, cId string) (string, error) {
-	log.Printf("Getting user ID by Cognito ID: %s", cId)
-	return s.userRepo.GetUserIdByCognitoId(ctx, cId)
+	// Corrected line 25:
+	// Capture the values from the repository call first
+	userID, err := s.userRepo.GetUserIdByCognitoId(ctx, cId)
+
+	// Now you can use them in the log statement.
+	// You need to decide what you want to log for the second %s.
+	// It's usually the actual ID or an error message.
+	// If userID is empty, it means not found, which is a success from repo's perspective.
+	// If err is not nil, that's an actual error from the DB.
+	if err != nil {
+		log.Printf("Error getting user ID by Cognito ID %s: %v", cId, err)
+		return "", fmt.Errorf("error retrieving user ID by Cognito ID: %w", err)
+	}
+	log.Printf("Getting user ID by Cognito ID: %s, Result: %s", cId, userID) // Changed the log message
+	
+	// Then return the results
+	return userID, nil
 }
 
 // GetUserByID retrieves a user by their ID
@@ -35,6 +50,7 @@ func (s *UserService) GetUserByID(ctx context.Context, userID string) (*domain.U
 // CreateUser creates a new user account
 func (s *UserService) CreateUser(ctx context.Context, req *dto.UserDetailsRequest) (*domain.User, error) {
 	// Convert DTO to domain entity
+	log.Printf("UserRequestToEntity")
 	user := mappers.UserRequestToEntity(req, nil)
 
 	// Save user to database
