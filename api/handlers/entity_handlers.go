@@ -84,7 +84,7 @@ func (h *EntityHandler) HandleCreateRootEntity(c *gin.Context) {
 // @Tags Entity Management
 // @Accept json
 // @Produce json
-// @Param X-User-ID header string true "User ID"
+// @Param X-Cognito-ID header string true "Cognito ID"
 // @Param entity body dto.CreateSubEntityRequest true "Entity information"
 // @Success 201 {object} dto.Response "Sub-entity created successfully"
 // @Failure 400 {object} dto.ErrorResponse "Validation error"
@@ -146,7 +146,7 @@ func (h *EntityHandler) HandleCreateSubEntity(c *gin.Context) {
 // @Tags Entity Management
 // @Accept json
 // @Produce json
-// @Param entity_id path string true "Entity ID"
+// @Param X-Cognito-ID header string true "Cognito ID"
 // @Param recursive query bool false "Whether to include all descendants"
 // @Param level query int false "Maximum depth level for descendants (0 for direct children only, -1 for all)"
 // @Param category_type query string false "Filter by category type"
@@ -154,12 +154,12 @@ func (h *EntityHandler) HandleCreateSubEntity(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 404 {object} dto.ErrorResponse "Entity not found"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /entity/{entity_id}/children [get]
+// @Router /entity/children [get]
 func (h *EntityHandler) HandleGetEntityChildren(c *gin.Context) {
-	// Get entity ID from URL path
-	entityID := c.Param("entity_id")
-	if entityID == "" {
-		response.BadRequest(c, "Entity ID is required")
+	// Get user ID from context (set by auth middleware)
+	userID := middleware.GetUserIDFromGin(c)
+	if userID == "" {
+		response.Unauthorized(c, "User not authenticated")
 		return
 	}
 
@@ -183,15 +183,11 @@ func (h *EntityHandler) HandleGetEntityChildren(c *gin.Context) {
 	// Call service to get entity children
 	entities, err := h.entityService.ListEntityChildren(
 		c.Request.Context(),
-		entityID,
+		userID,
 		level,
 		request.CategoryType,
 	)
 	if err != nil {
-		if err.Error() == "entity with ID "+entityID+" not found" {
-			response.NotFound(c, "Entity not found")
-			return
-		}
 		log.Printf("Error getting entity children: %v", err)
 		response.InternalError(c, "Failed to retrieve entity children")
 		return
@@ -202,7 +198,6 @@ func (h *EntityHandler) HandleGetEntityChildren(c *gin.Context) {
 
 	// Create the response structure
 	result := dto.EntityChildrenResponse{
-		ParentID: entityID,
 		Children: childResponses,
 		Count:    len(childResponses),
 	}
@@ -216,31 +211,27 @@ func (h *EntityHandler) HandleGetEntityChildren(c *gin.Context) {
 // @Tags Entity Management
 // @Accept json
 // @Produce json
-// @Param entity_id path string true "Entity ID"
+// @Param X-Cognito-ID header string true "Cognito ID"
 // @Param max_depth query int false "Maximum depth to include (default: 10)"
 // @Success 200 {object} dto.Response{data=dto.EntityHierarchyResponse} "Entity hierarchy retrieved successfully"
 // @Failure 400 {object} dto.ErrorResponse "Invalid request"
 // @Failure 404 {object} dto.ErrorResponse "Entity not found"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"
-// @Router /entity/{entity_id}/hierarchy [get]
+// @Router /entity/hierarchy [get]
 func (h *EntityHandler) HandleGetEntityHierarchy(c *gin.Context) {
-	// Get entity ID from URL path
-	entityID := c.Param("entity_id")
-	if entityID == "" {
-		response.BadRequest(c, "Entity ID is required")
+	// Get user ID from context (set by auth middleware)
+	userID := middleware.GetUserIDFromGin(c)
+	if userID == "" {
+		response.Unauthorized(c, "User not authenticated")
 		return
 	}
 
 	// Call service to get entity hierarchy
 	hierarchy, err := h.entityService.GetEntityHierarchy(
 		c.Request.Context(),
-		entityID,
+		userID,
 	)
 	if err != nil {
-		if err.Error() == "entity with ID "+entityID+" not found" {
-			response.NotFound(c, "Entity not found")
-			return
-		}
 		log.Printf("Error getting entity hierarchy: %v", err)
 		response.InternalError(c, "Failed to retrieve entity hierarchy")
 		return
@@ -262,7 +253,7 @@ func (h *EntityHandler) HandleGetEntityHierarchy(c *gin.Context) {
 // @Tags Entity Management
 // @Accept json
 // @Produce json
-// @Param X-User-ID header string true "User ID"
+// @Param X-Cognito-ID header string true "Cognito ID"
 // @Success 200 {object} dto.Response{data=map[string]bool} "Entity presence check successful"
 // @Failure 401 {object} dto.ErrorResponse "User not authenticated"
 // @Failure 500 {object} dto.ErrorResponse "Internal server error"

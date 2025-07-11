@@ -41,6 +41,17 @@ func (r *EntityRepository) CheckEntityPresence(ctx context.Context, userId strin
 	return exists, nil
 }
 
+func (r *EntityRepository) GetEntityId(ctx context.Context, userId string) (string, error) {
+	var entityId string
+	query := `select entity_id from z_entity where user_id = $1`
+
+	if err := r.db.QueryRow(ctx, query, userId).Scan(&entityId); err != nil {
+		return "", fmt.Errorf("failed to check entity presence: %w", err)
+	}
+
+	return entityId, nil
+}
+
 func (r *EntityRepository) GetCategoryType(ctx context.Context, categoryId string) (CategoryType, error) {
 	var categoryType string
 	query := `SELECT type FROM z_category WHERE category_id = $1`
@@ -258,17 +269,14 @@ func (r *EntityRepository) GetChildEntities(ctx context.Context, entityId string
 
 // GetEntityHierarchy retrieves an entity and all its descendant entities as a hierarchy
 // This method provides a structured view of the entity tree with proper parent-child relationships
-func (r *EntityRepository) GetEntityHierarchy(ctx context.Context, rootEntityId string) (map[string]any, error) {
-	// First check if the root entity exists
-	var exists bool
-	checkEntityQuery := `SELECT EXISTS(SELECT 1 FROM z_entity WHERE entity_id = $1)`
-
-	if err := r.db.QueryRow(ctx, checkEntityQuery, rootEntityId).Scan(&exists); err != nil {
-		return nil, fmt.Errorf("failed to check entity existence: %w", err)
+func (r *EntityRepository) GetEntityHierarchy(ctx context.Context, userId string) (map[string]any, error) {
+	rootEntityId, err := r.GetEntityId(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get entity ID for user %s: %w", userId, err)
 	}
 
-	if !exists {
-		return nil, fmt.Errorf("entity with ID %s not found", rootEntityId)
+	if rootEntityId == "" {
+		return nil, fmt.Errorf("user with ID %s does not have an associated entity", userId)
 	}
 
 	// Get all entities in the hierarchy using recursive CTE
@@ -449,17 +457,14 @@ func (r *EntityRepository) GetEntityHierarchy(ctx context.Context, rootEntityId 
 // ListEntityChildren lists all children of a given entity with optional filtering
 // level: 0 for direct children only, -1 for all descendants, or specific depth (1, 2, 3, etc.)
 // categoryType: filter by category type (optional)
-func (r *EntityRepository) ListEntityChildren(ctx context.Context, entityId string, level int, categoryType string) ([]*domain.Entity, error) {
-	// First check if the entity exists
-	var exists bool
-	checkEntityQuery := `SELECT EXISTS(SELECT 1 FROM z_entity WHERE entity_id = $1)`
-
-	if err := r.db.QueryRow(ctx, checkEntityQuery, entityId).Scan(&exists); err != nil {
-		return nil, fmt.Errorf("failed to check entity existence: %w", err)
+func (r *EntityRepository) ListEntityChildren(ctx context.Context, userId string, level int, categoryType string) ([]*domain.Entity, error) {
+	entityId, err := r.GetEntityId(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get entity ID for user %s: %w", userId, err)
 	}
 
-	if !exists {
-		return nil, fmt.Errorf("entity with ID %s not found", entityId)
+	if entityId == "" {
+		return nil, fmt.Errorf("user with ID %s does not have an associated entity", userId)
 	}
 
 	// Build the query based on parameters

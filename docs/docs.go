@@ -308,6 +308,154 @@ const docTemplate = `{
                 }
             }
         },
+        "/entity/children": {
+            "get": {
+                "description": "Get all children of a specific entity, with optional recursion and filtering",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Entity Management"
+                ],
+                "summary": "Get entity children",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cognito ID",
+                        "name": "X-Cognito-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether to include all descendants",
+                        "name": "recursive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum depth level for descendants (0 for direct children only, -1 for all)",
+                        "name": "level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by category type",
+                        "name": "category_type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Entity children retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.EntityChildrenResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/entity/hierarchy": {
+            "get": {
+                "description": "Get an entity and all its descendants as a hierarchical structure",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Entity Management"
+                ],
+                "summary": "Get entity hierarchy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Cognito ID",
+                        "name": "X-Cognito-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum depth to include (default: 10)",
+                        "name": "max_depth",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Entity hierarchy retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.EntityHierarchyResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Entity not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/entity/root": {
             "post": {
                 "security": [
@@ -393,8 +541,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
-                        "name": "X-User-ID",
+                        "description": "Cognito ID",
+                        "name": "X-Cognito-ID",
                         "in": "header",
                         "required": true
                     },
@@ -429,154 +577,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Parent entity not found",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/entity/{entity_id}/children": {
-            "get": {
-                "description": "Get all children of a specific entity, with optional recursion and filtering",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Entity Management"
-                ],
-                "summary": "Get entity children",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Entity ID",
-                        "name": "entity_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "Whether to include all descendants",
-                        "name": "recursive",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum depth level for descendants (0 for direct children only, -1 for all)",
-                        "name": "level",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by category type",
-                        "name": "category_type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Entity children retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/dto.EntityChildrenResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Entity not found",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/entity/{entity_id}/hierarchy": {
-            "get": {
-                "description": "Get an entity and all its descendants as a hierarchical structure",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Entity Management"
-                ],
-                "summary": "Get entity hierarchy",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Entity ID",
-                        "name": "entity_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum depth to include (default: 10)",
-                        "name": "max_depth",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Entity hierarchy retrieved successfully",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/dto.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/dto.EntityHierarchyResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Entity not found",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -854,8 +854,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "User ID",
-                        "name": "X-User-ID",
+                        "description": "Cognito ID",
+                        "name": "X-Cognito-ID",
                         "in": "header",
                         "required": true
                     }
@@ -1060,8 +1060,8 @@ const docTemplate = `{
                     "description": "Optional. Only needed if adding an sub entity under another entity",
                     "type": "string"
                 },
-                "userId": {
-                    "description": "Optional. Only needed if adding a sub user",
+                "subUserID": {
+                    "description": "UserID of the sub user. Optional. Only needed if adding a sub user",
                     "type": "string"
                 }
             }

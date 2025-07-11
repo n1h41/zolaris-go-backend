@@ -151,11 +151,13 @@ func main() {
 		private.POST("/user/details", userHandler.HandleUpdateUserDetails)
 		private.GET("/user/details", userHandler.HandleGetUserDetails)
 		private.GET("/user/has-entity", entityHandler.HandleCheckEntityPresence)
-		private.GET("/users/referrals", userHandler.HandleListReferredUsers)
+		private.GET("/user/referrals", userHandler.HandleListReferredUsers)
 
 		// Entity endpoints (authenticated)
 		private.POST("/entity/root", entityHandler.HandleCreateRootEntity)
 		private.POST("/entity/sub", entityHandler.HandleCreateSubEntity)
+		private.GET("/entity/hierarchy", entityHandler.HandleGetEntityHierarchy)
+		private.GET("/entity/children", entityHandler.HandleGetEntityChildren)
 	}
 
 	// Public routes (no authentication required)
@@ -164,10 +166,6 @@ func main() {
 	r.POST("/category/add", addCategoryHandler.HandleGin)
 	r.GET("/category/type/:type", getCategoriesByTypeHandler.HandleGin)
 	r.GET("/category/all", listAllCategoriesHandler.HandleGin)
-
-	// Entity endpoints (public)
-	r.GET("/entity/:entity_id/children", entityHandler.HandleGetEntityChildren)
-	r.GET("/entity/:entity_id/hierarchy", entityHandler.HandleGetEntityHierarchy)
 
 	// Create server
 	port := cfg.Server.Port

@@ -66,8 +66,9 @@ definitions:
       parentEntityId:
         description: Optional. Only needed if adding an sub entity under another entity
         type: string
-      userId:
-        description: Optional. Only needed if adding a sub user
+      subUserID:
+        description: UserID of the sub user. Optional. Only needed if adding a sub
+          user
         type: string
     required:
     - categoryId
@@ -474,16 +475,16 @@ paths:
       summary: Get device sensor data
       tags:
       - Device Data
-  /entity/{entity_id}/children:
+  /entity/children:
     get:
       consumes:
       - application/json
       description: Get all children of a specific entity, with optional recursion
         and filtering
       parameters:
-      - description: Entity ID
-        in: path
-        name: entity_id
+      - description: Cognito ID
+        in: header
+        name: X-Cognito-ID
         required: true
         type: string
       - description: Whether to include all descendants
@@ -526,15 +527,15 @@ paths:
       summary: Get entity children
       tags:
       - Entity Management
-  /entity/{entity_id}/hierarchy:
+  /entity/hierarchy:
     get:
       consumes:
       - application/json
       description: Get an entity and all its descendants as a hierarchical structure
       parameters:
-      - description: Entity ID
-        in: path
-        name: entity_id
+      - description: Cognito ID
+        in: header
+        name: X-Cognito-ID
         required: true
         type: string
       - description: 'Maximum depth to include (default: 10)'
@@ -615,9 +616,9 @@ paths:
       - application/json
       description: Create a new entity as a child of an existing entity
       parameters:
-      - description: User ID
+      - description: Cognito ID
         in: header
-        name: X-User-ID
+        name: X-Cognito-ID
         required: true
         type: string
       - description: Entity information
@@ -811,9 +812,9 @@ paths:
       - application/json
       description: Check if the authenticated user has any entities
       parameters:
-      - description: User ID
+      - description: Cognito ID
         in: header
-        name: X-User-ID
+        name: X-Cognito-ID
         required: true
         type: string
       produces:

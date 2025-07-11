@@ -76,19 +76,19 @@ func (s *EntityService) GetChildEntities(ctx context.Context, entityId string, r
 }
 
 // GetEntityHierarchy retrieves an entity and all its descendant entities as a hierarchical structure
-func (s *EntityService) GetEntityHierarchy(ctx context.Context, entityId string) (map[string]any, error) {
-	if entityId == "" {
+func (s *EntityService) GetEntityHierarchy(ctx context.Context, userId string) (map[string]any, error) {
+	if userId == "" {
 		return nil, fmt.Errorf("root entity ID cannot be empty")
 	}
 
-	return s.repo.GetEntityHierarchy(ctx, entityId)
+	return s.repo.GetEntityHierarchy(ctx, userId)
 }
 
 // ListEntityChildren lists all children of a given entity with optional filtering
 // level: 0 for direct children only, -1 for all descendants, or specific depth (1, 2, 3, etc.)
 // categoryType: filter by category type (optional)
-func (s *EntityService) ListEntityChildren(ctx context.Context, entityId string, level int, categoryType string) ([]*domain.Entity, error) {
-	if entityId == "" {
+func (s *EntityService) ListEntityChildren(ctx context.Context, userId string, level int, categoryType string) ([]*domain.Entity, error) {
+	if userId == "" {
 		return nil, fmt.Errorf("entity ID cannot be empty")
 	}
 
@@ -97,7 +97,7 @@ func (s *EntityService) ListEntityChildren(ctx context.Context, entityId string,
 		return nil, fmt.Errorf("invalid level: must be -1 (all levels), 0 (direct children only), or a positive integer")
 	}
 
-	return s.repo.ListEntityChildren(ctx, entityId, level, categoryType)
+	return s.repo.ListEntityChildren(ctx, userId, level, categoryType)
 }
 
 // GetCategoryType retrieves the type of a category by its ID
