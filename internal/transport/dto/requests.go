@@ -65,10 +65,13 @@ type CreateRootEntityRequest struct {
 
 // CreateSubEntityRequest represents a request to create a child entity
 type CreateSubEntityRequest struct {
-	CategoryID     string         `json:"categoryId" validate:"required,uuid"`
-	Name           string         `json:"name" validate:"required,min=2,max=100"`
-	Details        map[string]any `json:"details,omitempty"`
-	ParentEntityID string         `json:"parentEntityId,omitempty" validate:"omitempty,uuid"`
+	CategoryID string         `json:"categoryId" validate:"required,uuid"`
+	Name       string         `json:"name" validate:"required,min=2,max=100"`
+	Details    map[string]any `json:"details,omitempty"`
+	// Optional. Only needed if adding an sub entity under another entity
+	ParentEntityID string `json:"parentEntityId,omitempty" validate:"omitempty,uuid"`
+	// UserID of the sub user. Optional. Only needed if adding a sub user
+	SubUserID string `json:"subUserID,omitempty" validate:"omitempty,uuid"`
 }
 
 // GetEntityChildrenRequest represents a request to get children of an entity

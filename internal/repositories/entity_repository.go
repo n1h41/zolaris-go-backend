@@ -92,7 +92,7 @@ func (r *EntityRepository) CreateRootEntity(ctx context.Context, categoryId stri
 	return entityId, nil
 }
 
-func (r *EntityRepository) CreateSubEntity(ctx context.Context, categoryId string, entityName string, userId string, details map[string]any, parentEntityId string) (string, error) {
+func (r *EntityRepository) CreateSubEntity(ctx context.Context, categoryId string, entityName string, userId string, details map[string]any, parentEntityId string, subUserID string) (string, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to start transaction: %w", err)
@@ -112,36 +112,38 @@ func (r *EntityRepository) CreateSubEntity(ctx context.Context, categoryId strin
 		return "", err
 	}
 
-	if categoryType == UserCategoryType && userId == "" {
-		return "", fmt.Errorf("user ID is requried for user category entities")
-	}
-
 	var entityId string
 
-	if userId != "" {
-		var userHasEntity bool
-		checkUserQuery := `select exists(select 1 from z_entity where user_id = $1)`
-		if err := tx.QueryRow(ctx, checkUserQuery, userId).Scan(&userHasEntity); err != nil {
-			return "", fmt.Errorf("failed to check user entities: %w", err)
-		}
+	var userHasEntity bool
+	checkUserQuery := `select exists(select 1 from z_entity where user_id = $1)`
+	if err := tx.QueryRow(ctx, checkUserQuery, userId).Scan(&userHasEntity); err != nil {
+		return "", fmt.Errorf("failed to check user entities: %w", err)
+	}
 
-		if !userHasEntity {
-			return "", fmt.Errorf("user with ID %s does not have any existing entities", userId)
-		}
+	if !userHasEntity {
+		return "", fmt.Errorf("user with ID %s does not have an associated entity", userId)
+	}
 
-		if categoryType == UserCategoryType {
-			query := `INSERT INTO z_entity (category_id, parent_id, name, user_id) VALUES ($1, $2, $3, $4) RETURNING entity_id`
-			err = tx.QueryRow(ctx, query, categoryId, parentEntityId, entityName, userId).Scan(&entityId)
+	if categoryType == UserCategoryType {
+		var query string
+		query = `INSERT INTO z_entity (category_id, parent_id, name, user_id) VALUES ($1, $2, $3, $4) RETURNING entity_id`
+
+		// If subUserID is provided, use it; otherwise, use the main userId
+		if subUserID != "" {
+			err = tx.QueryRow(ctx, query, categoryId, parentEntityId, entityName, subUserID).Scan(&entityId)
 		} else {
-			detailsJSON, jsonErr := json.Marshal(details)
-			if jsonErr != nil {
-				return "", fmt.Errorf("failed to marshal details: %w", jsonErr)
-			}
-
-			query := `INSERT INTO z_entity (category_id, parent_id, name, details) VALUES ($1, $2, $3, $4) RETURNING entity_id`
-
-			err = tx.QueryRow(ctx, query, categoryId, parentEntityId, entityName, detailsJSON).Scan(&entityId)
+			err = tx.QueryRow(ctx, query, categoryId, parentEntityId, entityName, userId).Scan(&entityId)
 		}
+
+	} else {
+		detailsJSON, jsonErr := json.Marshal(details)
+		if jsonErr != nil {
+			return "", fmt.Errorf("failed to marshal details: %w", jsonErr)
+		}
+
+		query := `INSERT INTO z_entity (category_id, parent_id, name, details) VALUES ($1, $2, $3, $4) RETURNING entity_id`
+
+		err = tx.QueryRow(ctx, query, categoryId, parentEntityId, entityName, detailsJSON).Scan(&entityId)
 	}
 
 	if err != nil {

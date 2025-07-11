@@ -48,7 +48,7 @@ func (s *EntityService) CreateRootEntity(ctx context.Context, categoryId string,
 }
 
 // CreateSubEntity creates a new entity as a child of an existing entity
-func (s *EntityService) CreateSubEntity(ctx context.Context, categoryId string, entityName string, userId string, details map[string]any, parentEntityID string) (string, error) {
+func (s *EntityService) CreateSubEntity(ctx context.Context, categoryId string, entityName string, userId string, details map[string]any, parentEntityID string, subUserID string) (string, error) {
 	if categoryId == "" {
 		return "", fmt.Errorf("category ID cannot be empty")
 	}
@@ -62,7 +62,7 @@ func (s *EntityService) CreateSubEntity(ctx context.Context, categoryId string, 
 		details = make(map[string]any)
 	}
 
-	return s.repo.CreateSubEntity(ctx, categoryId, entityName, userId, details, parentEntityID)
+	return s.repo.CreateSubEntity(ctx, categoryId, entityName, userId, details, parentEntityID, subUserID)
 }
 
 // GetChildEntities retrieves all direct child entities of a given entity
@@ -76,12 +76,12 @@ func (s *EntityService) GetChildEntities(ctx context.Context, entityId string, r
 }
 
 // GetEntityHierarchy retrieves an entity and all its descendant entities as a hierarchical structure
-func (s *EntityService) GetEntityHierarchy(ctx context.Context, rootEntityId string) (map[string]any, error) {
-	if rootEntityId == "" {
+func (s *EntityService) GetEntityHierarchy(ctx context.Context, entityId string) (map[string]any, error) {
+	if entityId == "" {
 		return nil, fmt.Errorf("root entity ID cannot be empty")
 	}
 
-	return s.repo.GetEntityHierarchy(ctx, rootEntityId)
+	return s.repo.GetEntityHierarchy(ctx, entityId)
 }
 
 // ListEntityChildren lists all children of a given entity with optional filtering

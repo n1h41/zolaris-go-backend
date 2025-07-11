@@ -125,6 +125,7 @@ func (h *EntityHandler) HandleCreateSubEntity(c *gin.Context) {
 		userID,
 		request.Details,
 		request.ParentEntityID,
+		request.SubUserID,
 	)
 	if err != nil {
 		if err.Error() == "user with ID "+userID+" does not have any existing entities" {

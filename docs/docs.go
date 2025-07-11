@@ -1057,6 +1057,11 @@ const docTemplate = `{
                     "minLength": 2
                 },
                 "parentEntityId": {
+                    "description": "Optional. Only needed if adding an sub entity under another entity",
+                    "type": "string"
+                },
+                "userId": {
+                    "description": "Optional. Only needed if adding a sub user",
                     "type": "string"
                 }
             }
